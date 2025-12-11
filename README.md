@@ -127,13 +127,15 @@ npm run build
 ### 自动部署
 1. 推送代码到 GitHub 仓库
 2. 在仓库 Settings > Pages 中设置：
-   - Source: Deploy from a branch
-   - Branch: gh-pages
-3. 运行构建命令：
-   ```bash
-   npm run build
-   git subtree push --prefix dist origin gh-pages
-   ```
+   - Source: GitHub Actions
+3. 每次推送到 main 分支时会自动构建和部署
+4. 访问地址：`https://[username].github.io/erc20-transfer-dapp/`
+
+### 手动部署（备选）
+```bash
+npm run build
+git subtree push --prefix dist origin gh-pages
+```
 
 ### 手动部署
 ```bash
