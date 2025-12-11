@@ -18,6 +18,7 @@ function App() {
   const { isConnected } = useAccount()
   const [currentTxHash, setCurrentTxHash] = useState('')
   const [tokenAddress, setTokenAddress] = useState('')
+  const [refreshTokenData, setRefreshTokenData] = useState(() => () => {})
 
   // Get token decimals for transfer form
   const { data: decimalsData } = useReadContracts({
@@ -57,7 +58,10 @@ function App() {
           <div className="space-y-6">
             <WalletConnect />
 
-            <TokenInfo onTokenAddressChange={setTokenAddress} />
+            <TokenInfo
+              onTokenAddressChange={setTokenAddress}
+              onRefetch={setRefreshTokenData}
+            />
           </div>
 
           {/* Right Column */}
@@ -67,6 +71,7 @@ function App() {
               decimals={decimals}
               symbol={symbol}
               onTransferComplete={handleTransferComplete}
+              onRefreshBalance={refreshTokenData}
             />
 
             <TxResult hash={currentTxHash} />

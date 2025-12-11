@@ -12,10 +12,10 @@
  */
 import { useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseUnits } from 'viem'
+import { parseUnits, isAddress } from 'viem'
 import { ERC20_ABI } from '../lib/abi.js'
 
-export function TransferForm({ tokenAddress, decimals, symbol, onTransferComplete }) {
+export function TransferForm({ tokenAddress, decimals, symbol, onTransferComplete, onRefreshBalance }) {
   const { isConnected } = useAccount()
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
@@ -27,7 +27,31 @@ export function TransferForm({ tokenAddress, decimals, symbol, onTransferComplet
   })
 
   const handleTransfer = async () => {
-    if (!tokenAddress || !recipient || !amount || !decimals) return
+    // 验证输入
+    if (!tokenAddress) {
+      alert('Please load token information first.')
+      return
+    }
+
+    if (!recipient) {
+      alert('Please enter recipient address.')
+      return
+    }
+
+    if (!isAddress(recipient)) {
+      alert('Please enter a valid Ethereum address.')
+      return
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      alert('Please enter a valid amount greater than 0.')
+      return
+    }
+
+    if (!decimals) {
+      alert('Token decimals not loaded. Please reload token information.')
+      return
+    }
 
     try {
       const parsedAmount = parseUnits(amount, decimals)
@@ -39,14 +63,19 @@ export function TransferForm({ tokenAddress, decimals, symbol, onTransferComplet
       })
     } catch (err) {
       console.error('Transfer error:', err)
+      alert('Transfer failed: ' + err.message)
     }
   }
 
-  // Reset form on successful transfer
+  // Reset form on successful transfer and refresh balance
   if (isConfirmed && onTransferComplete) {
     onTransferComplete(hash)
     setRecipient('')
     setAmount('')
+    // Refresh balance after successful transfer
+    if (onRefreshBalance) {
+      setTimeout(() => onRefreshBalance(), 2000) // Wait 2 seconds for transaction to be mined
+    }
   }
 
   const isDisabled = !isConnected || !tokenAddress || !recipient || !amount || isPending || isConfirming

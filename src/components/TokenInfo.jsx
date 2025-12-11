@@ -11,12 +11,12 @@
  * balanceOf(address)
  * 将数值从 raw → formatUnits(decimals)
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useReadContract, useReadContracts } from 'wagmi'
-import { formatUnits } from 'viem'
+import { formatUnits, isAddress } from 'viem'
 import { ERC20_ABI } from '../lib/abi.js'
 
-export function TokenInfo({ onTokenAddressChange }) {
+export function TokenInfo({ onTokenAddressChange, onRefetch }) {
   const { address, isConnected } = useAccount()
   const [tokenAddress, setTokenAddress] = useState('')
 
@@ -51,11 +51,26 @@ export function TokenInfo({ onTokenAddressChange }) {
 
   const [name, symbol, decimals, balance] = tokenData || []
 
-  const handleLoadToken = () => {
-    if (tokenAddress) {
-      refetch()
-      onTokenAddressChange?.(tokenAddress)
+  // 传递 refetch 函数给父组件
+  useEffect(() => {
+    if (onRefetch) {
+      onRefetch(() => refetch)
     }
+  }, [onRefetch, refetch])
+
+  const handleLoadToken = () => {
+    if (!tokenAddress) {
+      alert('Please enter a token contract address.')
+      return
+    }
+
+    if (!isAddress(tokenAddress)) {
+      alert('Please enter a valid Ethereum contract address.')
+      return
+    }
+
+    refetch()
+    onTokenAddressChange?.(tokenAddress)
   }
 
   const formatBalance = (balance, decimals) => {
